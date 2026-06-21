@@ -3,6 +3,7 @@
 #include <string.h>
 #include <ctype.h>
 #include <stdbool.h>
+#include <unistd.h>
 
 typedef struct
 {
@@ -12,6 +13,9 @@ typedef struct
 } Agenda;
 
 int TAM_AGENDA = 0;
+
+void limpar();
+void mostrarSucesso(char mensagemSucesso[], char mensagemVoltar[]);
 
 void menu(int *opcao);
 void menuAcao(int *opcao, char modo[]);
@@ -58,21 +62,42 @@ int main(void)
             buscarPorNome(agenda, tamAgenda);
             break;
         case 4:
-            editarContato(arquivo, agenda, tamAgenda);
+            tamAgenda > 0 ? editarContato(arquivo, agenda, tamAgenda) : printf("\n\tA lista de contatos esta vazia!");
             break;
         case 5:
-            modoExcluir(arquivo, agenda, &tamAgenda);
+            tamAgenda > 0 ? modoExcluir(arquivo, agenda, &tamAgenda) : printf("\n\tA lista de contatos esta vazia!");
             break;
         case 6:
+            limpar();
             printf("\tTchau\n");
             break;
         default:
+            limpar();
             printf("\tOpcao errada, tente novamente!");
         }
     } while (opcao != 6);
 }
 
+void limpar(){
+    #ifdef __WIN32
+        system("cls");
+    #else
+        system("clear");    
+    #endif
+}
+
+void mostrarSucesso(char mensagemSucesso[], char mensagemVoltar[]){
+    printf("\n\t%s", mensagemSucesso);
+    for(int i=4; i>=1; i--){
+        printf("\n\t%s: %i", mensagemVoltar, i);
+        sleep(1);
+        limpar();
+    }
+    limpar();
+}
+
 void editar(FILE *arquivo, Agenda agenda[], int tamAgenda, int posicao){
+    limpar();
     int opcao;
 
     do {
@@ -87,20 +112,22 @@ void editar(FILE *arquivo, Agenda agenda[], int tamAgenda, int posicao){
             novoNome[strlen(novoNome) - 1] = '\0';
             strcpy(agenda[posicao].nome, novoNome);
             colocarNovoContatoNoArquivo(arquivo, agenda, tamAgenda);
-            printf("\tNome editado com sucesso!\n");
+            limpar();
+            printf("\n\n\tNome editado com sucesso!\n");
             break;
         case 2:
             getchar();
             char novoTelefone[100];
-            printf("\tInforme o novo telfone de %s: ", agenda[posicao].nome);
+            printf("\tInforme o novo telefone de %s: ", agenda[posicao].nome);
             fgets(novoTelefone, 100, stdin);
             novoTelefone[strlen(novoTelefone) - 1] = '\0';
             strcpy(agenda[posicao].telefone, novoTelefone);
             colocarNovoContatoNoArquivo(arquivo, agenda, tamAgenda);
-            printf("\tTelefone editado com sucesso!\n");
+            limpar();
+            printf("\n\n\tTelefone editado com sucesso!\n");
             break;
         case 3:
-            printf("\tSaindo...");
+            mostrarSucesso("Saindo...", "Voltando para as opcoes de edicao em");
             break;
         default:
             printf("\tOpcao errada, tente novamente!");
@@ -112,8 +139,8 @@ void editar(FILE *arquivo, Agenda agenda[], int tamAgenda, int posicao){
 }
 
 void editarContato(FILE *arquivo, Agenda agenda[], int tamAgenda){
+    limpar();
     int opcao;
-
     do {
         menuAcao(&opcao, "EDICAO");
         switch (opcao)
@@ -125,7 +152,7 @@ void editarContato(FILE *arquivo, Agenda agenda[], int tamAgenda){
             editar(arquivo, agenda, tamAgenda, encontrarPorNome(agenda, &tamAgenda, "editar"));
             break;
         case 3:
-            printf("\tSaindo...");
+            mostrarSucesso("Saindo...", "Voltando para o menu principal em");
             break;
         default:
             break;
@@ -157,6 +184,7 @@ void checarDadosExistentesNoArquivo(FILE *arquivo, Agenda agenda[], int *tamAgen
 
 void modoExcluir(FILE *arquivo, Agenda agenda[], int *tamAgenda)
 {
+    limpar();
     int opcao;
     do
     {
@@ -170,7 +198,7 @@ void modoExcluir(FILE *arquivo, Agenda agenda[], int *tamAgenda)
             excluir(arquivo, agenda, tamAgenda, encontrarPorNome(agenda, tamAgenda, "excluir"));
             break;
         case 3:
-            printf("\tSaindo...");
+            mostrarSucesso("Saindo...", "Voltando para o menu principal em");
             break;
         default:
             printf("\tOpcao errada, tente novamente!");
@@ -180,6 +208,7 @@ void modoExcluir(FILE *arquivo, Agenda agenda[], int *tamAgenda)
 
 void buscarPorNome(Agenda agenda[], int tamAgenda)
 {
+    limpar();
     getchar();
     Agenda agendaFiltrada[tamAgenda];
     int tamAgendaFiltrada = 0;
@@ -206,9 +235,10 @@ void buscarPorNome(Agenda agenda[], int tamAgenda)
 
 void listarContatos(Agenda agenda[], int tamAgenda)
 {
+    limpar();
     if (tamAgenda == 0)
     {
-        printf("\n\tSua lista de contatos esta vazia");
+        printf("\n\tSua lista de contatos esta vazia\n");
         return;
     }
     char guardarNome[100], guardarTelefone[100];
@@ -248,18 +278,22 @@ void colocarNovoContatoNoArquivo(FILE *arquivo, Agenda agenda[], int tamAgenda)
 
 void novoContato(Agenda agenda[], int *tamAgenda)
 {
+    limpar();
     ++TAM_AGENDA;
     Agenda contato;
     getchar();
-    printf("\tInforme o nome do novo contato: ");
+    printf("\n\tInforme o nome do novo contato: ");
     fgets(contato.nome, 100, stdin);
     contato.nome[strlen(contato.nome) - 1] = '\0';
-    printf("\tInforme o telefone de %s: ", contato.nome);
+    printf("\n\tInforme o telefone de %s: ", contato.nome);
     fgets(contato.telefone, 100, stdin);
     contato.telefone[strlen(contato.telefone) - 1] = '\0';
     contato.id = TAM_AGENDA;
     agenda[*(tamAgenda)] = contato;
     ++*(tamAgenda);
+    limpar();
+    mostrarSucesso("Contato criado com sucesso!", "Voltando para o menu principal em");
+    limpar();
 }
 
 int encontrarPorId(Agenda agenda[], int *tamAgenda, char modo[])
@@ -270,7 +304,7 @@ int encontrarPorId(Agenda agenda[], int *tamAgenda, char modo[])
     int id;
     while (posicaoEncontrado == -1)
     {
-        printf("\tInforme o identificador que deseja %s: ", modo);
+        printf("\n\tInforme o identificador que deseja %s: ", modo);
         scanf("%i", &id);
         for (int i = 0; i < *(tamAgenda); i++)
         {
@@ -279,7 +313,7 @@ int encontrarPorId(Agenda agenda[], int *tamAgenda, char modo[])
         }
 
         if (posicaoEncontrado == -1)
-            printf("\tIdentificador nao encontrado, tente novamente!\n");
+            printf("\n\tIdentificador nao encontrado, tente novamente!\n");
     }
 }
 
@@ -292,7 +326,7 @@ int encontrarPorNome(Agenda agenda[], int *tamAgenda, char modo[])
     while (posicaoEncontrado == -1)
     {
 
-        printf("\tInforme o nome corretamente que deseja %s: ", modo);
+        printf("\n\tInforme o nome corretamente que deseja %s: ", modo);
         fgets(nome, 100, stdin);
 
         for (int i = 0; i < *(tamAgenda); i++)
@@ -311,7 +345,7 @@ int encontrarPorNome(Agenda agenda[], int *tamAgenda, char modo[])
         }
 
         if (posicaoEncontrado == -1)
-            printf("\tNome nao encontrado, tente novamente!\n");
+            printf("\n\tNome nao encontrado, tente novamente!\n");
     }
 }
 
@@ -321,9 +355,9 @@ void excluir(FILE *arquivo, Agenda agenda[], int *tamAgenda, int posicaoEncontra
         agenda[i - 1] = agenda[i];
     --*(tamAgenda);
 
-    listarContatos(agenda, *(tamAgenda));
+    limpar();
     colocarNovoContatoNoArquivo(arquivo, agenda, *(tamAgenda));
-    printf("\n\tContato excluido com sucesso!");
+    mostrarSucesso("Contato excluido com sucesso!", "Voltando para o menu de exclusao em");
 }
 
 void menu(int *opcao)
